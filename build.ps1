@@ -1,0 +1,1 @@
+pyinstaller --onefile --windowed --icon=src/icons/app.ico --name 'Image Converter' src/main.py --add-data .\src\icons\icon.png:icons    
