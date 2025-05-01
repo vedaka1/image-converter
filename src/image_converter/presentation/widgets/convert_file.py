@@ -5,36 +5,34 @@ from image_converter.application.usecases.convert_image import ConvertImageUseCa
 from image_converter.presentation.common.dialog import CustomDialog
 from image_converter.presentation.common.scroll_label import ScrollLabel
 from image_converter.presentation.path import format_path
-from image_converter.presentation.widgets.combobox.file_extension import FileExtensionComboBox
-
-_ALL_FILES_EXTENSION = 'All files (*)'
+from image_converter.presentation.widgets.combobox.file_extension import ALL_FILES_EXTENSION, FileExtensionComboBox
 
 
 def create_selected_label_text(selected_filenames: list[str], result_folder: str | None = None) -> str:
     if not result_folder:
-        destination = ''
         if selected_filenames:
-            destination = f'Файлы будут сохранены в {selected_filenames[0].rsplit("/", 1)[0]}\n'
-    else:
-        destination = f'Файлы будут сохранены в {result_folder}\n'
+            result_folder = selected_filenames[0].rsplit('/', 1)[0]
 
+    destination = f'Файлы будут сохранены в {result_folder}\n' if result_folder else ''
     text = f'{destination}Выбрано {len(selected_filenames)} файлов:\n'
     for item in selected_filenames:
-        text += f'{item.rsplit("/", 1)[-1]}\n'
+        filename = item.rsplit('/', 1)[-1]
+        text += f'{filename}\n'
     return text
 
 
 class ConvertFileWidget(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        self.selected_files = []
+        self.selected_files: list[str] = []
         self.result_path: str | None = None
 
         layout = QVBoxLayout(self)
 
         convert_from_label = QLabel('Конвертировать из:')
-        extensions = [_ALL_FILES_EXTENSION] + [ext.value for ext in FileExtension]
-        self.convert_from_combobox = FileExtensionComboBox(extensions=extensions)
+        self.convert_from_combobox = FileExtensionComboBox(
+            extensions=[ALL_FILES_EXTENSION, *(ext.value for ext in FileExtension)],
+        )
         convert_to_label = QLabel('Конвертировать в:')
         self.convert_to_combobox = FileExtensionComboBox(
             extensions=[ext.value for ext in FileExtension],
@@ -82,14 +80,12 @@ class ConvertFileWidget(QWidget):
                     to_extension=self.convert_to_combobox.selected,
                     result_path=self.result_path,
                 )
-
         except Exception as e:
             dlg.setWindowTitle('Ошибка')
             dlg.message.setText(str(e))
-
         dlg.exec()
 
     def choose_result_folder(self) -> None:
         path = QFileDialog.getExistingDirectory(parent=self, caption='Choose folder')
         self.result_path = format_path(path) if path else None
-        self.selected_label.setText(create_selected_label_text(self.selected_files, result_folder=path))
+        self.selected_label.setText(create_selected_label_text(self.selected_files, result_folder=self.result_path))
