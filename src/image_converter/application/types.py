@@ -6,3 +6,4 @@ class FileExtension(Enum):
     JPEG = 'jpeg'
     BMP = 'bmp'
     WEBP = 'webp'
+    HEIF = 'heic'
